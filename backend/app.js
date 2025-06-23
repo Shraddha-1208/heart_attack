@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const otpRoutes = require('./routes/otpRoutes');
 const doctorAuth = require('./routes/doctor');
+const patientRoutes = require('./routes/patient');
 const path = require('path');
 const cors = require('cors');
 
@@ -16,7 +17,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
+app.use('/api/patients', patientRoutes);
 app.use('/api/auth', doctorAuth);
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
