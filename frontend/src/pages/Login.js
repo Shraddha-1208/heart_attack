@@ -8,19 +8,26 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', { username, password });
-      const role = response.data.role;
+const handleLogin = async () => {
+  try {
+    const response = await axios.post('http://localhost:5000/api/auth/login', { username, password });
+    const role = response.data.role;
+    const loggedInUsername = response.data.user.username;
 
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'patient') navigate('/home');
-      else if (role === 'doctor') navigate('/doctor');
-      else alert('Unknown role');
-    } catch (error) {
-      alert('Invalid credentials');
-    }
-  };
+    // ✅ Store in localStorage
+    localStorage.setItem("username", loggedInUsername);
+    localStorage.setItem("role", role);
+
+    // ✅ Navigate based on role
+    if (role === 'admin') navigate('/admin');
+    else if (role === 'patient') navigate('/home');
+    else if (role === 'doctor') navigate('/doctor');
+    else alert('Unknown role');
+  } catch (error) {
+    alert('Invalid credentials');
+  }
+};
+
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh" bgcolor="#f4f6f9">

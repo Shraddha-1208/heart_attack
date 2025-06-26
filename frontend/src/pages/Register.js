@@ -125,15 +125,7 @@ const navigate = useNavigate();
               </div>
 
               <div className="row mb-3">
-                <div className="col-md-4">
-                  <input
-                    type="text"
-                    name="uhid"
-                    className="form-control"
-                    placeholder="UHID"
-                    onChange={handleChange}
-                  />
-                </div>
+               
                 <div className="col-md-4">
                   <input
                     type="text"

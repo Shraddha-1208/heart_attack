@@ -13,13 +13,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// POST /api/auth
+// POST /api/auth (Register patient)
 router.post('/', upload.single('image'), (req, res) => {
   const {
     fullName,
     username,
-    password, // Added password field
-    uhid,
+    password,
     gender,
     dob,
     age,
@@ -30,6 +29,9 @@ router.post('/', upload.single('image'), (req, res) => {
   } = req.body;
 
   const image = req.file ? req.file.filename : '';
+
+  // ✅ Auto-generate UHID
+  const uhid = `UHID${Math.floor(100000 + Math.random() * 900000)}`;
 
   // First insert into patient_master
   const patientSql = `
@@ -49,50 +51,55 @@ router.post('/', upload.single('image'), (req, res) => {
     phone,
     address,
     medicalNotes,
-    1, // status active
+    1, // active
     email,
     image
   ];
 
   db.query(patientSql, patientValues, (err, result) => {
     if (err) {
-      console.error('Error inserting into patient_master:', err);
+      console.error('❌ Error inserting into patient_master:', err);
       return res.status(500).json({ success: false, message: 'Patient registration failed' });
     }
 
-    // Now insert into user_master
+    // Then insert into user_master
     const userSql = `
       INSERT INTO user_master (type, username, password, date_created, status)
       VALUES (?, ?, ?, NOW(), ?)
     `;
 
     const userValues = [
-      'patient',  // or use another role if applicable
+      'patient',
       username,
       password,
-      1           // status active
+      1
     ];
 
     db.query(userSql, userValues, (userErr, userResult) => {
       if (userErr) {
-        console.error('Error inserting into user_master:', userErr);
+        console.error('❌ Error inserting into user_master:', userErr);
         return res.status(500).json({ success: false, message: 'User registration failed' });
       }
 
-      return res.status(200).json({ success: true, message: 'Patient registered successfully' });
+      return res.status(200).json({
+        success: true,
+        message: '✅ Patient registered successfully',
+        uhid  // Include UHID in response if needed on frontend
+      });
     });
   });
 });
 
+// POST /api/auth/login
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
-  console.log("Received login request:", username, password); // ✅ log it
+  console.log("🔐 Login attempt:", username, password);
 
   const sql = 'SELECT * FROM user_master WHERE username = ? AND password = ?';
   db.query(sql, [username, password], (err, result) => {
     if (err) return res.status(500).json({ success: false, message: 'Database error', error: err });
 
-    console.log("DB result:", result); // ✅ log query result
+    console.log("🔍 Login result:", result);
 
     if (result.length > 0) {
       res.json({
@@ -101,7 +108,7 @@ router.post('/login', (req, res) => {
         role: result[0].type,
         user: {
           username: result[0].username,
-          status: result[0].status,
+          status: result[0].status
         }
       });
     } else {
@@ -109,6 +116,5 @@ router.post('/login', (req, res) => {
     }
   });
 });
-
 
 module.exports = router;

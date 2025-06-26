@@ -5,8 +5,9 @@ import './App.css';
 // Patient pages
 import Home1 from './pages/patient/Home1';
 import About from './pages/patient/About1';
-
-
+import Layout from './pages/patient/layout';
+import UploadImage from './pages/patient/UploadImage';
+import ReportHistory from './pages/patient/ReportHistory';
 // Auth pages
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -16,7 +17,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import AdminLayout from './pages/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import ManageDoctor from './pages/admin/ManageDoctor';
-import ManagePatient from'./pages/admin/ManagePatient';
+import ManagePatient from './pages/admin/ManagePatient';
 import ViewReports from './pages/admin/ViewReports';
 import DoctorLayout from './pages/doctor/DoctorLayout';
 
@@ -27,16 +28,18 @@ function App() {
   return (
     <Router>
       <Routes>
-
         {/* Auth Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot" element={<ForgotPassword />} />
 
         {/* Patient Module */}
-        <Route path="/home" element={<Home1 />} />
-        <Route path="/about" element={<About />} />
-        
+        <Route element={<Layout />}>
+  <Route path="/home" element={<Home1 />} />
+  <Route path="/about" element={<About />} />
+  <Route path="/upload" element={<UploadImage />} />
+  <Route path="/report" element={<ReportHistory />} />
+</Route>
 
         {/* Admin Module */}
         <Route path="/admin" element={<AdminLayout />}>
@@ -45,11 +48,12 @@ function App() {
           <Route path="patient" element={<ManagePatient />} />
           <Route path="reports" element={<ViewReports />} />
         </Route>
+
         {/* Doctor Module */}
         <Route path="/doctor-register" element={<DoctorRegister />} />
-<Route path="/doctor" element={<DoctorLayout />}>
-  {/* You can define nested doctor dashboard routes here */}
-</Route>
+        <Route path="/doctor" element={<DoctorLayout />}>
+          {/* You can define nested doctor dashboard routes here */}
+        </Route>
       </Routes>
     </Router>
   );
