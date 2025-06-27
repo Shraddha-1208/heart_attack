@@ -8,8 +8,10 @@ const ReportHistory = () => {
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
 
+  const uhid = localStorage.getItem('uhid') || 'N/A';
+
   useEffect(() => {
-    axios.get('http://127.0.0.1:5000/reports')
+    axios.get(`http://127.0.0.1:5000/reports?uhid=${uhid}`)
       .then(res => {
         if (res.data.success) {
           setReports(res.data.reports);
@@ -18,26 +20,24 @@ const ReportHistory = () => {
       .catch(err => {
         console.error("Error fetching reports:", err);
       });
-  }, []);
+  }, [uhid]);
 
-const generatePDF = async (report) => {
-  setSelectedReport(report);
+  const generatePDF = async (report) => {
+    setSelectedReport(report);
+    setTimeout(async () => {
+      const element = document.getElementById('pdf-format');
+      if (!element) return;
 
-  // Delay allows React to render updated selectedReport
-  setTimeout(async () => {
-    const element = document.getElementById('pdf-format');
-    if (!element) return;
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight);
-    pdf.save(`${report.name}_retinal_report.pdf`);
-  }, 100); // Allow time for DOM to update
-};
+      pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight);
+      pdf.save(`${report.name}_retinal_report.pdf`);
+    }, 100);
+  };
 
   return (
     <div style={styles.container}>
@@ -87,6 +87,7 @@ const generatePDF = async (report) => {
           <div style={pdfStyles.row}>
             <div>
               <p><strong>Name:</strong> {selectedReport.name}</p>
+              <p><strong>UHID:</strong> {uhid}</p>
               <p><strong>Age:</strong> {selectedReport.age}</p>
               <p><strong>Gender:</strong> {selectedReport.gender}</p>
             </div>
@@ -99,7 +100,6 @@ const generatePDF = async (report) => {
             </div>
           </div>
 
-          {/* Question-Answer Table Format */}
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#e0f2f1' }}>
@@ -155,7 +155,7 @@ const generatePDF = async (report) => {
   );
 };
 
-// Styles
+// ----------- Styles -----------
 const styles = {
   container: {
     padding: '40px',
@@ -216,8 +216,6 @@ const pdfStyles = {
     fontFamily: "'Poppins', sans-serif",
     zIndex: -999,
   },
-  
-
   title: {
     textAlign: 'center',
     marginBottom: '20px',

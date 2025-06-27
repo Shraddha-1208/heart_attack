@@ -8,6 +8,7 @@ import About from './pages/patient/About1';
 import Layout from './pages/patient/layout';
 import UploadImage from './pages/patient/UploadImage';
 import ReportHistory from './pages/patient/ReportHistory';
+import Contact from './pages/patient/Contact';
 // Auth pages
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -39,6 +40,7 @@ function App() {
   <Route path="/about" element={<About />} />
   <Route path="/upload" element={<UploadImage />} />
   <Route path="/report" element={<ReportHistory />} />
+  <Route path="/contact" element={<Contact />} />
 </Route>
 
         {/* Admin Module */}

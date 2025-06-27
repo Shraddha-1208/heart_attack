@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const db = require('../db');
 
-// Multer configuration for file uploads
+// Multer config for file uploads
 const storage = multer.diskStorage({
   destination: './uploads/',
   filename: (req, file, cb) => {
@@ -13,7 +13,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// POST /api/auth (Register patient)
+/**
+ * POST /api/auth
+ * Register a new patient
+ */
 router.post('/', upload.single('image'), (req, res) => {
   const {
     fullName,
@@ -30,10 +33,10 @@ router.post('/', upload.single('image'), (req, res) => {
 
   const image = req.file ? req.file.filename : '';
 
-  // ✅ Auto-generate UHID
+  // Generate unique UHID
   const uhid = `UHID${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // First insert into patient_master
+  // Insert into patient_master
   const patientSql = `
     INSERT INTO patient_master (
       full_name, username, UHID, gender, dob, age, phone,
@@ -51,7 +54,7 @@ router.post('/', upload.single('image'), (req, res) => {
     phone,
     address,
     medicalNotes,
-    1, // active
+    1, // status active
     email,
     image
   ];
@@ -62,7 +65,7 @@ router.post('/', upload.single('image'), (req, res) => {
       return res.status(500).json({ success: false, message: 'Patient registration failed' });
     }
 
-    // Then insert into user_master
+    // Insert into user_master
     const userSql = `
       INSERT INTO user_master (type, username, password, date_created, status)
       VALUES (?, ?, ?, NOW(), ?)
@@ -72,7 +75,7 @@ router.post('/', upload.single('image'), (req, res) => {
       'patient',
       username,
       password,
-      1
+      1 // active
     ];
 
     db.query(userSql, userValues, (userErr, userResult) => {
@@ -81,38 +84,74 @@ router.post('/', upload.single('image'), (req, res) => {
         return res.status(500).json({ success: false, message: 'User registration failed' });
       }
 
+      // Return UHID in response
       return res.status(200).json({
         success: true,
         message: '✅ Patient registered successfully',
-        uhid  // Include UHID in response if needed on frontend
+        uhid
       });
     });
   });
 });
 
-// POST /api/auth/login
+/**
+ * POST /api/auth/login
+ * Login any user (patient/admin), fetch UHID if patient
+ */
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
   console.log("🔐 Login attempt:", username, password);
 
   const sql = 'SELECT * FROM user_master WHERE username = ? AND password = ?';
   db.query(sql, [username, password], (err, result) => {
-    if (err) return res.status(500).json({ success: false, message: 'Database error', error: err });
-
-    console.log("🔍 Login result:", result);
+    if (err) {
+      console.error("❌ DB error:", err);
+      return res.status(500).json({ success: false, message: 'Database error', error: err });
+    }
 
     if (result.length > 0) {
-      res.json({
-        success: true,
-        message: 'Login successful',
-        role: result[0].type,
-        user: {
-          username: result[0].username,
-          status: result[0].status
-        }
-      });
+      const role = result[0].type;
+
+      if (role === 'patient') {
+        const uhidQuery = 'SELECT UHID FROM patient_master WHERE username = ? LIMIT 1';
+        db.query(uhidQuery, [username], (uhidErr, uhidRes) => {
+          if (uhidErr) {
+            console.error("❌ UHID fetch error:", uhidErr);
+            return res.status(500).json({ success: false, message: 'UHID fetch failed' });
+          }
+
+          console.log('UHID query result:', uhidRes);
+
+          const uhid = uhidRes.length > 0 ? uhidRes[0].UHID : null;
+          if (!uhid) {
+            console.warn(`⚠️ No UHID found for username: ${username}`);
+          }
+
+          return res.json({
+            success: true,
+            message: 'Login successful',
+            role,
+            user: {
+              username: result[0].username,
+              status: result[0].status,
+              uhid: uhid || 'N/A',
+            }
+          });
+        });
+      } else {
+        // Admin or other roles
+        return res.json({
+          success: true,
+          message: 'Login successful',
+          role,
+          user: {
+            username: result[0].username,
+            status: result[0].status
+          }
+        });
+      }
     } else {
-      res.status(401).json({ success: false, message: 'Invalid username or password' });
+      return res.status(401).json({ success: false, message: 'Invalid username or password' });
     }
   });
 });

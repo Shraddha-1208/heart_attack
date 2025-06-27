@@ -14,7 +14,7 @@ function Layout() {
         .get(`http://localhost:5000/api/user/profile/${username}`)
         .then((res) => {
           if (res.data.success) {
-            const imageUrl = `http://localhost:5000/uploads/${res.data.profile_image}`;
+            const imageUrl = `http://localhost:5000/uploads/${res.data.data.image}`;
             setProfilePic(imageUrl);
             setPatientData(res.data.data);  // assuming API returns full patient data
           }

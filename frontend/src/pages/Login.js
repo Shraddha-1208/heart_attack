@@ -13,10 +13,19 @@ const handleLogin = async () => {
     const response = await axios.post('http://localhost:5000/api/auth/login', { username, password });
     const role = response.data.role;
     const loggedInUsername = response.data.user.username;
+    const uhid = response.data.user.uhid; // get UHID from response
 
     // ✅ Store in localStorage
     localStorage.setItem("username", loggedInUsername);
     localStorage.setItem("role", role);
+
+    // ✅ Save UHID if patient
+    if (role === 'patient' && uhid) {
+      localStorage.setItem("uhid", uhid);
+      console.log("UHID saved:", uhid);
+    } else {
+      localStorage.removeItem("uhid"); // clear if not patient
+    }
 
     // ✅ Navigate based on role
     if (role === 'admin') navigate('/admin');

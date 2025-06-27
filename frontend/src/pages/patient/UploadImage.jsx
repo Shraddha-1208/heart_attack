@@ -25,6 +25,11 @@ const UploadImage = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
+ // Example: After successful login response
+const uhid = (localStorage.getItem('uhid') || '').trim();
+
+
+
   const toggleForm = () => {
     setShowForm(!showForm);
     setResult(null);
@@ -42,10 +47,12 @@ const UploadImage = () => {
     formData.append('age', age);
     formData.append('gender', gender);
     formData.append('image', image);
-
+    formData.append('uhid', localStorage.getItem('uhid'));
     try {
       setLoading(true);
       const response = await axios.post('http://127.0.0.1:5000/predict', formData);
+
+
       const data = response.data;
       if (data.success) {
         setResult({
@@ -68,23 +75,22 @@ const UploadImage = () => {
   };
 
   const downloadPDF = async () => {
-  const pdfTarget = document.getElementById('pdf-format');
-  if (!pdfTarget) return;
+    const pdfTarget = document.getElementById('pdf-format');
+    if (!pdfTarget) return;
 
-  pdfTarget.style.display = 'block'; // Show temporarily
+    pdfTarget.style.display = 'block';
 
-  const canvas = await html2canvas(pdfTarget, { scale: 2, useCORS: true });
-  const imgData = canvas.toDataURL('image/png');
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const canvas = await html2canvas(pdfTarget, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-  pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight);
-  pdf.save(`${result.name}_retinal_report.pdf`);
+    pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight);
+    pdf.save(`${result.name}_retinal_report.pdf`);
 
-  pdfTarget.style.display = 'none'; // Hide again
-};
-
+    pdfTarget.style.display = 'none';
+  };
 
   const pieChartData = result && {
     labels: ['Risk Rate', 'Remaining'],
@@ -148,6 +154,7 @@ const UploadImage = () => {
                 />
                 <div style={{ lineHeight: '1.6' }}>
                   <p><strong>Name:</strong> {result.name}</p>
+                  <p><strong>UHID:</strong> {uhid}</p>
                   <p><strong>Age:</strong> {age}</p>
                   <p><strong>Gender:</strong> {gender}</p>
                 </div>
@@ -173,10 +180,10 @@ const UploadImage = () => {
                           result.riskRate >= 80
                             ? "red"
                             : result.riskRate >= 60
-                            ? "orange"
-                            : result.riskRate >= 40
-                            ? "#ff9800"
-                            : "green"
+                              ? "orange"
+                              : result.riskRate >= 40
+                                ? "#ff9800"
+                                : "green"
                       }}
                     >
                       {result.riskRate}%
@@ -192,91 +199,86 @@ const UploadImage = () => {
                 </button>
               </div>
             </motion.div>
-{result && (
-  <>
-    <div style={{ marginTop: '30px', textAlign: 'center' }}>
-      <button onClick={downloadPDF} style={styles.downloadButton}>
-        📄 Download PDF Report
-      </button>
-    </div>
 
-    {/* Hidden PDF layout container */}
-    <div
-      id="pdf-format"
-      style={{
-        padding: '30px',
-        width: '700px',
-        background: '#fff',
-        fontFamily: "'Poppins', sans-serif",
-        margin: '30px auto',
-        display: 'none' // hidden during screen rendering
-      }}
-    >
-      <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#00695c' }}>
-        🧠 Retinal Health Assessment Report
-      </h2>
+            <div style={{ marginTop: '30px', textAlign: 'center' }}>
+              <button onClick={downloadPDF} style={styles.downloadButton}>
+                📄 Download PDF Report
+              </button>
+            </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div>
-          <p><strong>Name:</strong> {result.name}</p>
-          <p><strong>Age:</strong> {age}</p>
-          <p><strong>Gender:</strong> {gender}</p>
-        </div>
-        <div>
-          {image && (
-            <img
-              src={URL.createObjectURL(image)}
-              alt="Profile"
-              style={{ width: '100px', height: '100px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #ccc' }}
-            />
-          )}
-        </div>
-      </div>
-
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#e0f2f1' }}>
-            <th style={pdfStyles.th}>Question</th>
-            <th style={pdfStyles.th}>Answer</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style={pdfStyles.td}>Prediction Result</td>
-            <td style={pdfStyles.td}>{result.label}</td>
-          </tr>
-          <tr>
-            <td style={pdfStyles.td}>Confidence</td>
-            <td style={pdfStyles.td}>{result.confidence}%</td>
-          </tr>
-          <tr>
-            <td style={pdfStyles.td}>Risk Rate</td>
-            <td
+            {/* Hidden PDF Layout */}
+            <div
+              id="pdf-format"
               style={{
-                ...pdfStyles.td,
-                color:
-                  result.riskRate >= 80 ? 'red' :
-                  result.riskRate >= 60 ? 'orange' :
-                  result.riskRate >= 40 ? '#ff9800' :
-                  'green'
+                padding: '30px',
+                width: '700px',
+                background: '#fff',
+                fontFamily: "'Poppins', sans-serif",
+                margin: '30px auto',
+                display: 'none'
               }}
             >
-              {result.riskRate}%
-            </td>
-          </tr>
-          <tr>
-            <td style={pdfStyles.td}>Suggestion</td>
-            <td style={pdfStyles.td}>{result.suggestion}</td>
-          </tr>
-        </tbody>
-      </table>
+              <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#00695c' }}>
+                🧠 Retinal Health Assessment Report
+              </h2>
 
-      <p style={{ marginTop: '30px', fontSize: '13px', color: '#666' }}>
-        This report is auto-generated based on uploaded retinal image and input parameters. For further interpretation, consult a healthcare professional.
-      </p>
-    </div>
-  </>
-)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <p><strong>Name:</strong> {result.name}</p>
+                  <p><strong>UHID:</strong> {uhid}</p>
+                  <p><strong>Age:</strong> {age}</p>
+                  <p><strong>Gender:</strong> {gender}</p>
+                </div>
+                <div>
+                  {image && (
+                    <img
+                      src={URL.createObjectURL(image)}
+                      alt="Profile"
+                      style={{ width: '100px', height: '100px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #ccc' }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#e0f2f1' }}>
+                    <th style={pdfStyles.th}>Question</th>
+                    <th style={pdfStyles.th}>Answer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={pdfStyles.td}>Prediction Result</td>
+                    <td style={pdfStyles.td}>{result.label}</td>
+                  </tr>
+                  <tr>
+                    <td style={pdfStyles.td}>Confidence</td>
+                    <td style={pdfStyles.td}>{result.confidence}%</td>
+                  </tr>
+                  <tr>
+                    <td style={pdfStyles.td}>Risk Rate</td>
+                    <td style={{
+                      ...pdfStyles.td,
+                      color:
+                        result.riskRate >= 80 ? 'red' :
+                          result.riskRate >= 60 ? 'orange' :
+                            result.riskRate >= 40 ? '#ff9800' :
+                              'green'
+                    }}>{result.riskRate}%</td>
+                  </tr>
+                  <tr>
+                    <td style={pdfStyles.td}>Suggestion</td>
+                    <td style={pdfStyles.td}>{result.suggestion}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p style={{ marginTop: '30px', fontSize: '13px', color: '#666' }}>
+                This report is auto-generated based on uploaded retinal image and input parameters. For further interpretation, consult a healthcare professional.
+              </p>
+            </div>
+
             <div style={styles.chartContainer}>
               {pieChartData && (
                 <motion.div style={styles.chartBox} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
