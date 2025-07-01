@@ -3,7 +3,7 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Pie, Bar } from 'react-chartjs-2';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -24,15 +24,77 @@ const UploadImage = () => {
   const [image, setImage] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [notificationSent, setNotificationSent] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
- // Example: After successful login response
-const uhid = (localStorage.getItem('uhid') || '').trim();
-
-
+  const uhid = (localStorage.getItem('uhid') || '').trim();
 
   const toggleForm = () => {
     setShowForm(!showForm);
     setResult(null);
+    setNotificationSent(false);
+  };
+
+  const generatePDFBase64 = async () => {
+    const pdfTarget = document.getElementById('pdf-format');
+    if (!pdfTarget) return null;
+
+    pdfTarget.style.display = 'block';
+    const canvas = await html2canvas(pdfTarget, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight);
+    pdfTarget.style.display = 'none';
+    return pdf.output('datauristring').split(',')[1]; // Return base64 string
+  };
+
+  const downloadPDF = async () => {
+    const pdfTarget = document.getElementById('pdf-format');
+    if (!pdfTarget) return;
+
+    pdfTarget.style.display = 'block';
+    const canvas = await html2canvas(pdfTarget, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight);
+    pdf.save(`${result.name}_retinal_report.pdf`);
+    pdfTarget.style.display = 'none';
+  };
+
+  const sendNotification = async () => {
+    if (!result || result.label.toLowerCase() === 'normal') return;
+
+    const pdfBase64 = await generatePDFBase64();
+    if (!pdfBase64) {
+      alert('⚠️ Failed to generate PDF for notification.');
+      return;
+    }
+
+    const notificationData = {
+      name: result.name,
+      uhid,
+      riskRate: result.riskRate,
+      label: result.label,
+      confidence: result.confidence,
+      timestamp: new Date().toISOString(),
+      pdf: pdfBase64,
+      recipient: result.riskRate >= 80 ? 'doctor' : 'admin'
+    };
+
+    try {
+      await axios.post('http://127.0.0.1:5000/notify', notificationData);
+      setNotificationSent(true);
+      setTimeout(() => setNotificationSent(false), 5000); // Hide notification after 5 seconds
+    } catch (err) {
+      console.error('Failed to send notification:', err);
+      alert('⚠️ Failed to send notification to ' + notificationData.recipient);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -47,11 +109,10 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
     formData.append('age', age);
     formData.append('gender', gender);
     formData.append('image', image);
-    formData.append('uhid', localStorage.getItem('uhid'));
+    formData.append('uhid', uhid);
     try {
       setLoading(true);
       const response = await axios.post('http://127.0.0.1:5000/predict', formData);
-
 
       const data = response.data;
       if (data.success) {
@@ -72,24 +133,6 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
     } finally {
       setLoading(false);
     }
-  };
-
-  const downloadPDF = async () => {
-    const pdfTarget = document.getElementById('pdf-format');
-    if (!pdfTarget) return;
-
-    pdfTarget.style.display = 'block';
-
-    const canvas = await html2canvas(pdfTarget, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight);
-    pdf.save(`${result.name}_retinal_report.pdf`);
-
-    pdfTarget.style.display = 'none';
   };
 
   const pieChartData = result && {
@@ -119,6 +162,20 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
       <motion.div style={styles.container} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}>
         <h1 style={styles.heading}>🩺 Retinal Image Prediction</h1>
 
+        <AnimatePresence>
+          {notificationSent && (
+            <motion.div
+              style={styles.notificationBanner}
+              initial={{ opacity: 0, rotateY: 90 }}
+              animate={{ opacity: 1, rotateY: 0 }}
+              exit={{ opacity: 0, rotateY: -90 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+            >
+              <span role="img" aria-label="success">✅</span> Report sent to {result.riskRate >= 80 ? 'Doctor' : 'Admin'} for review!
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {!result && (
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={toggleForm} style={styles.toggleButton}>
             {showForm ? 'Hide Upload Form' : 'Upload Retinal Image'}
@@ -126,7 +183,13 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
         )}
 
         {showForm && (
-          <motion.form onSubmit={handleSubmit} style={styles.form} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <motion.form
+            onSubmit={handleSubmit}
+            style={styles.form}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <input type="text" placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} style={styles.input} />
             <input type="number" placeholder="Age" value={age} onChange={e => setAge(e.target.value)} style={styles.input} />
             <select value={gender} onChange={e => setGender(e.target.value)} style={styles.input}>
@@ -178,12 +241,12 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
                         ...styles.td,
                         color:
                           result.riskRate >= 80
-                            ? "red"
+                            ? 'red'
                             : result.riskRate >= 60
-                              ? "orange"
+                              ? 'orange'
                               : result.riskRate >= 40
-                                ? "#ff9800"
-                                : "green"
+                                ? '#ff9800'
+                                : 'green'
                       }}
                     >
                       {result.riskRate}%
@@ -194,9 +257,49 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
               </table>
 
               <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <button onClick={toggleForm} style={{ ...styles.button, backgroundColor: '#6d4c41', marginLeft: '12px' }}>
+                <motion.button
+                  onClick={toggleForm}
+                  style={{ ...styles.button, backgroundColor: '#6d4c41', marginLeft: '12px' }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                >
                   🔙 Back
-                </button>
+                </motion.button>
+                {result.label.toLowerCase() !== 'normal' && (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <motion.button
+                      onClick={sendNotification}
+                      style={styles.feedbackButton}
+                      whileHover={{ scale: 1.05, boxShadow: '0 8px 16px rgba(0,0,0,0.3)' }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={{
+                        boxShadow: [
+                          '0 4px 12px rgba(216, 27, 96, 0.3)',
+                          '0 8px 16px rgba(216, 27, 96, 0.5)',
+                          '0 4px 12px rgba(216, 27, 96, 0.3)',
+                        ],
+                        transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
+                      }}
+                      onMouseEnter={() => setShowTooltip(true)}
+                      onMouseLeave={() => setShowTooltip(false)}
+                    >
+                      📨 Request Doctor Feedback
+                    </motion.button>
+                    <AnimatePresence>
+                      {showTooltip && (
+                        <motion.div
+                          style={styles.tooltip}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          Send report to {result.riskRate >= 80 ? 'Doctor' : 'Admin'} for review
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -206,7 +309,6 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
               </button>
             </div>
 
-            {/* Hidden PDF Layout */}
             <div
               id="pdf-format"
               style={{
@@ -243,33 +345,35 @@ const uhid = (localStorage.getItem('uhid') || '').trim();
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#e0f2f1' }}>
-                    <th style={pdfStyles.th}>Question</th>
-                    <th style={pdfStyles.th}>Answer</th>
+                    <th style={styles.th}>Question</th>
+                    <th style={styles.th}>Answer</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={pdfStyles.td}>Prediction Result</td>
-                    <td style={pdfStyles.td}>{result.label}</td>
+                    <td style={styles.td}>Prediction Result</td>
+                    <td style={styles.td}>{result.label}</td>
                   </tr>
                   <tr>
-                    <td style={pdfStyles.td}>Confidence</td>
-                    <td style={pdfStyles.td}>{result.confidence}%</td>
+                    <td style={styles.td}>Confidence</td>
+                    <td style={styles.td}>{result.confidence}%</td>
                   </tr>
                   <tr>
-                    <td style={pdfStyles.td}>Risk Rate</td>
-                    <td style={{
-                      ...pdfStyles.td,
-                      color:
-                        result.riskRate >= 80 ? 'red' :
-                          result.riskRate >= 60 ? 'orange' :
-                            result.riskRate >= 40 ? '#ff9800' :
-                              'green'
-                    }}>{result.riskRate}%</td>
+                    <td style={styles.td}>Risk Rate</td>
+                    <td
+                      style={{
+                        ...styles.td,
+                        color:
+                          result.riskRate >= 80 ? 'red' :
+                            result.riskRate >= 60 ? 'orange' :
+                              result.riskRate >= 40 ? '#ff9800' :
+                                'green'
+                      }}
+                    >{result.riskRate}%</td>
                   </tr>
                   <tr>
-                    <td style={pdfStyles.td}>Suggestion</td>
-                    <td style={pdfStyles.td}>{result.suggestion}</td>
+                    <td style={styles.td}>Suggestion</td>
+                    <td style={styles.td}>{result.suggestion}</td>
                   </tr>
                 </tbody>
               </table>
@@ -314,7 +418,8 @@ const styles = {
     backgroundColor: '#ffffffee',
     borderRadius: '16px',
     boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-    padding: '40px'
+    padding: '40px',
+    position: 'relative'
   },
   heading: {
     textAlign: 'center',
@@ -358,17 +463,43 @@ const styles = {
     fontWeight: '600'
   },
   downloadButton: {
-  padding: '12px 26px',
-  fontSize: '16px',
-  backgroundColor: '#004d40',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '8px',
-  fontWeight: '600',
-  cursor: 'pointer',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-},
-
+    padding: '12px 26px',
+    fontSize: '16px',
+    backgroundColor: '#004d40',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+  },
+  feedbackButton: {
+    padding: '12px 24px',
+    fontSize: '16px',
+    background: 'linear-gradient(45deg, #d81b60, #f06292)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '10px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    marginLeft: '12px',
+    transition: 'background 0.3s ease'
+  },
+  tooltip: {
+    position: 'absolute',
+    bottom: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '8px 12px',
+    backgroundColor: '#333',
+    color: '#fff',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '500',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+    zIndex: 10,
+    whiteSpace: 'nowrap'
+  },
   resultCard: {
     marginTop: '40px',
     padding: '24px',
@@ -412,8 +543,24 @@ const styles = {
     textAlign: 'center',
     marginBottom: '10px',
     fontWeight: 600
+  },
+  notificationBanner: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    padding: '12px 24px',
+    background: 'linear-gradient(45deg, #4caf50, #81c784)',
+    color: '#fff',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+    fontSize: '16px',
+    fontWeight: '500',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
   }
 };
+
 const pdfStyles = {
   th: {
     border: '1px solid #ccc',
