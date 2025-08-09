@@ -190,14 +190,54 @@ const UploadImage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <input type="text" placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} style={styles.input} />
-            <input type="number" placeholder="Age" value={age} onChange={e => setAge(e.target.value)} style={styles.input} />
-            <select value={gender} onChange={e => setGender(e.target.value)} style={styles.input}>
-              <option value="">Select Gender</option>
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
-            </select>
+          <input
+  type="text"
+  placeholder="Full Name"
+  value={name}
+  onChange={e => {
+    const value = e.target.value;
+    // Only allow letters and spaces
+    if (/^[a-zA-Z\s]*$/.test(value)) {
+      setName(value);
+    }
+  }}
+  style={{
+    ...styles.input,
+    borderColor: name.trim() === '' ? 'red' : '#ccc'
+  }}
+/>
+{ name.trim() === '' && <span style={{ color: 'red', fontSize: '0.8rem' }}>Name is required</span> }
+
+<input
+  type="number"
+  placeholder="Age"
+  value={age}
+  onChange={e => {
+    const value = e.target.value;
+    if (value === '' || (Number(value) > 0 && Number(value) <= 120)) {
+      setAge(value);
+    }
+  }}
+  style={{
+    ...styles.input,
+    borderColor: age === '' || age <= 0 || age > 120 ? 'red' : '#ccc'
+  }}
+/>
+{ (age === '' || age <= 0 || age > 120) && (
+  <span style={{ color: 'red', fontSize: '0.8rem' }}>Enter a valid age (1–120)</span>
+)}
+
+<select
+  value={gender}
+  onChange={e => setGender(e.target.value)}
+  style={styles.input}
+>
+  <option value="">Select Gender</option>
+  <option value="Female">Female</option>
+  <option value="Male">Male</option>
+  <option value="Other">Other</option>
+</select>
+
             <input type="file" accept="image/*" onChange={e => setImage(e.target.files[0])} style={styles.input} />
             <motion.button type="submit" style={styles.button} disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               {loading ? "⏳ Predicting..." : "Submit"}
