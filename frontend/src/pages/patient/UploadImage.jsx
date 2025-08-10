@@ -334,7 +334,7 @@ const UploadImage = () => {
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.3 }}
                         >
-                          Send report to {result.riskRate >= 80 ? 'Doctor' : 'Admin'} for review
+                          Send report to {result.riskRate >= 60 ? 'Doctor' : 'Admin'} for review
                         </motion.div>
                       )}
                     </AnimatePresence>

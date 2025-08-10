@@ -26,6 +26,7 @@ import DoctorLayout from './pages/doctor/DoctorLayout';
 import DoctorRegister from './pages/doctor/doctor_login'
 import DoctorViewReports from './pages/doctor/View_Reports';
 import DoctorReportHistory from './pages/doctor/DoctorReportHistory'
+import DoctorDashboard from './pages/doctor/dashboard_doctor'
 function App() {
   return (
     <Router>
@@ -55,6 +56,7 @@ function App() {
         {/* Doctor Module */}
         <Route path="/doctor-register" element={<DoctorRegister />} />
         <Route path="/doctor" element={<DoctorLayout />}>
+         <Route index element={<DoctorDashboard />} />
  <Route path="view-report" element={<DoctorViewReports />}></Route>
   <Route path="give-suggestion" element={<DoctorReportHistory />}></Route>
           {/* You can define nested doctor dashboard routes here */}
