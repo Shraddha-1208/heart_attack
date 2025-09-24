@@ -47,32 +47,29 @@ const Login = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
+        background: '#f5f5f5',
         fontFamily: 'Poppins, sans-serif',
       }}
     >
       <Paper
-        elevation={8}
+        elevation={3}
         sx={{
           p: 5,
-          borderRadius: 4,
+          borderRadius: 3,
           width: '100%',
           maxWidth: 420,
-          background: 'rgba(18, 18, 18, 0.7)',
-          backdropFilter: 'blur(15px)',
-          color: '#fff',
           textAlign: 'center',
-          boxShadow: '0 0 20px rgba(230, 237, 237, 0.2)'
+          backgroundColor: '#fff',
         }}
       >
         {/* Logo */}
         <Box mb={3}>
-          <img src="https://img.icons8.com/ios-filled/50/00e5ff/visible.png" alt="eye" width={50} />
-          <Typography variant="h4" sx={{ mt: 1, fontWeight: 'bold', color: '#00e5ff' }}>
+          <img src="https://img.icons8.com/ios-filled/50/000000/visible.png" alt="eye" width={50} />
+          <Typography variant="h4" sx={{ mt: 1, fontWeight: 'bold', color: '#333' }}>
             EyeBeat
           </Typography>
-          <Typography variant="subtitle2" sx={{ color: '#90caf9' }}>
-            Your Vision, Our AI
+          <Typography variant="subtitle2" sx={{ color: '#777' }}>
+            See the Future of Your Heart.
           </Typography>
         </Box>
 
@@ -83,21 +80,11 @@ const Login = () => {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          sx={{
-            input: { color: '#fff' },
-            mb: 2,
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: '#1a1a1a',
-              borderRadius: 2,
-              '& fieldset': { borderColor: '#00e5ff' },
-              '&:hover fieldset': { borderColor: '#00bcd4' },
-              '&.Mui-focused fieldset': { borderColor: '#00e5ff' },
-            },
-          }}
+          sx={{ mb: 2 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <AccountCircleIcon sx={{ color: '#00e5ff' }} />
+                <AccountCircleIcon sx={{ color: '#666' }} />
               </InputAdornment>
             ),
           }}
@@ -111,30 +98,20 @@ const Login = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          sx={{
-            input: { color: '#fff' },
-            mb: 3,
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: '#1a1a1a',
-              borderRadius: 2,
-              '& fieldset': { borderColor: '#00e5ff' },
-              '&:hover fieldset': { borderColor: '#00bcd4' },
-              '&.Mui-focused fieldset': { borderColor: '#00e5ff' },
-            },
-          }}
+          sx={{ mb: 3 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <LockIcon sx={{ color: '#00e5ff' }} />
+                <LockIcon sx={{ color: '#666' }} />
               </InputAdornment>
             ),
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                   {showPassword ? (
-                    <VisibilityOffIcon sx={{ color: '#00e5ff' }} />
+                    <VisibilityOffIcon sx={{ color: '#666' }} />
                   ) : (
-                    <VisibilityIcon sx={{ color: '#00e5ff' }} />
+                    <VisibilityIcon sx={{ color: '#666' }} />
                   )}
                 </IconButton>
               </InputAdornment>
@@ -142,41 +119,37 @@ const Login = () => {
           }}
         />
 
-        {/* Login */}
+        {/* Login Button */}
         <Button
           variant="contained"
           fullWidth
           onClick={handleLogin}
           sx={{
             py: 1.5,
-            borderRadius: 3,
+            borderRadius: 2,
             fontWeight: 'bold',
             fontSize: '1rem',
-            background: 'linear-gradient(90deg, #00e5ff, #007bff)',
-            boxShadow: '0 0 15px rgba(0, 229, 255, 0.5)',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #007bff, #00e5ff)',
-            }
+            backgroundColor: '#1976d2',
+            '&:hover': { backgroundColor: '#1565c0' },
           }}
         >
           LOGIN
         </Button>
 
-        {/* Register */}
-        <Typography variant="body2" sx={{ mt: 4, color: '#90caf9', fontSize: '1rem' }}>
-  Don’t have an account?
-</Typography>
+        {/* Register Links */}
+        <Typography variant="body2" sx={{ mt: 4, color: '#555', fontSize: '1rem' }}>
+          Don’t have an account?
+        </Typography>
 
-<Typography variant="body2" sx={{ mt: 1, fontSize: '1rem' }}>
-  <Link href="/register" underline="hover" sx={{ color: '#00e5ff', fontWeight: 'bold' }}>
-    Register as Patient
-  </Link>{' '}
-  |{' '}
-  <Link href="/doctor-register" underline="hover" sx={{ color: '#00e5ff', fontWeight: 'bold' }}>
-    Register as Doctor
-  </Link>
-</Typography>
-
+        <Typography variant="body2" sx={{ mt: 1, fontSize: '1rem' }}>
+          <Link href="/register" underline="hover" sx={{ color: '#1976d2', fontWeight: 'bold' }}>
+            Register as Patient
+          </Link>{' '}
+          |{' '}
+          <Link href="/doctor-register" underline="hover" sx={{ color: '#1976d2', fontWeight: 'bold' }}>
+            Register as Doctor
+          </Link>
+        </Typography>
       </Paper>
     </Box>
   );

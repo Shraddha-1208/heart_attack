@@ -331,6 +331,7 @@ const DoctorRegister = () => {
                   </label>
                   <input
                     type="file"
+                    
                     name="image"
                     className="form-control mx-auto w-100"
                     style={getBorderStyle('image')}

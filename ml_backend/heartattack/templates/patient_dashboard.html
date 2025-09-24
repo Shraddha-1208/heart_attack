@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Patient Dashboard</title>
+  <link rel="stylesheet" href="D:\proj\css\patient_dashboard.css">
+</head>
+<body>
+  <header>
+    <h1>Patient Dashboard</h1>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <div class="dashboard-container">
+    <div class="card" onclick="navigate('upload_retinal_eye.html')">
+      <h2>Retinal Eye Upload</h2>
+      <p>Upload retinal image for analysis</p>
+    </div>
+    <div class="card" onclick="navigate('view_result.html')">
+      <h2>View Result</h2>
+      <p>Check your health prediction</p>
+    </div>
+    <div class="card" onclick="navigate('consult_doctor.html')">
+      <h2>Consult Doctor</h2>
+      <p>Connect with a specialist</p>
+    </div>
+    <div class="card" onclick="navigate('view_suggestions.html')">
+      <h2>View Suggestions</h2>
+      <p>Get health tips and advice</p>
+    </div>
+  </div>
+
+  <script src="D:\proj\js\patient_dashboard.js"></script>
+</body>
+</html>

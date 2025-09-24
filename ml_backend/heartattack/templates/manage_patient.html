@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Patient - Upload Retinal Image</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      height: 100vh;
+      background: url('https://wallpaperaccess.com/full/4112932.jpg') no-repeat center center/cover;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 0;
+    }
+
+    .glass-card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.3); /* More brightness */
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 40px;
+      max-width: 450px;
+      width: 100%;
+      margin: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ffffff;
+    }
+
+    h2 {
+      font-weight: 600;
+      margin-bottom: 30px;
+      color: #ffffff;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-top: 20px;
+      font-weight: 500;
+      font-size: 14px;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255, 255, 255, 0.95); /* Brighter input */
+      font-size: 14px;
+      color: #000;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="file"] {
+      cursor: pointer;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 12px 25px;
+      font-size: 16px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      border: none;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #38f9d7 0%, #43e97b 100%);
+    }
+
+    .result {
+      margin-top: 30px;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 15px;
+      border-radius: 10px;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <h2>Upload Retinal Image</h2>
+
+    <form action="/predict" method="POST" enctype="multipart/form-data">
+      <label for="name">👤 Patient Name</label>
+      <input type="text" name="name" id="name" placeholder="Enter patient's name" required>
+
+      <label for="image">🖼️ Upload Retinal Image</label>
+      <input type="file" name="image" id="image" accept="image/*" required>
+
+      <button type="submit">🚀 Predict</button>
+    </form>
+
+    {% if result %}
+      <div class="result">
+        <strong>Prediction:</strong> {{ result }}
+      </div>
+    {% endif %}
+  </div>
+
+</body>
+</html>
