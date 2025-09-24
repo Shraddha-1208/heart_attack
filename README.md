@@ -10,7 +10,7 @@ The project allows users to input health data and receive heart attack risk pred
 project/
 ├── frontend/ # React application
 ├── backend/ # Node.js API
-├── ml_backend/ # Flask ML application
+├── ml_backend/ # Flask ML application and jupyter train code
 └── db/ # SQL databse
 
 
