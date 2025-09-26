@@ -32,34 +32,34 @@ bash
 git clone https://github.com/Athul2530/user_creation.git
 Install dependencies and run each part:
 
-Frontend (React)
-cd frontend
-npm install
-npm start
+- Frontend (React)
+- cd frontend
+- npm install
+- npm start
 
 
 Backend (Node.js)
-cd backend
-npm install
-npm run serve
+- cd backend
+- npm install
+- npm run serve
 
 ML Backend (Flask)
-cd ml_backend
-python -m venv venv        # optional
-source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
+- cd ml_backend
+- python -m venv venv        # optional
+- source venv/bin/activate   # Windows: venv\Scripts\activate
+- pip install -r requirements.txt
+- python app.py
 
 Usage
-Open http://localhost:3000 in your browser (frontend).
+- Open http://localhost:3000 in your browser (frontend).
 
 Interact with the application; backend and ml_backend handle logic and communicate with the database.
 
 Technologies Used
-React (frontend)
+- React (frontend)
 
-Node.js / Express (backend)
+- Node.js / Express (backend)
 
-Python / Flask (ml_backend)
+- Python / Flask (ml_backend)
 
-MySQL database
+- MySQL database
